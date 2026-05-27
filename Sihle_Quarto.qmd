@@ -1,0 +1,21 @@
+---
+title: "Sihle Quarto"
+format: pdf
+font: times new roman 
+execute:
+ output: false
+---
+
+Hello, I am Sihle and this is my first quarto document. 
+
+```{python}
+#| echo: false
+#| output: false
+print("Hello")
+``` 
+
+```{python}
+#| echo: false
+#| output: false
+print("Hello")
+``` 

@@ -1,0 +1,80 @@
+---
+title: "Credit"
+format: pptx
+font: times new roman
+---
+
+
+```{python}
+#| echo: false
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, roc_auc_score, RocCurveDisplay
+from sklearn.preprocessing import StandardScaler
+
+np.random.seed(42)
+n = 2000
+
+df_credit = pd.DataFrame({
+    "Age"              : np.random.randint(18, 70, n),
+    "Annual_Income"    : np.random.normal(55_000, 20_000, n).clip(15_000, 200_000).round(-2),
+    "Credit_History"   : np.random.randint(0, 20, n),         # years
+    "Existing_Debt"    : np.random.normal(15_000, 10_000, n).clip(0, 80_000).round(-2),
+    "Employment_Status": np.random.choice([0, 1], n, p=[0.2, 0.8]),  # 0=unemployed
+    "Num_Loans"        : np.random.randint(0, 8, n),
+})
+
+# Default probability influenced by debt ratio and employment
+debt_ratio       = df_credit["Existing_Debt"] / df_credit["Annual_Income"]
+default_prob     = (0.3 * debt_ratio + 0.2 * (1 - df_credit["Employment_Status"])
+                    + 0.1 * (df_credit["Num_Loans"] / 8)).clip(0, 1)
+df_credit["Default"] = np.random.binomial(1, default_prob)
+
+print(df_credit.info())
+print("Top 10")
+print(df_credit.head())
+print("Bottom 10")
+print(df_credit.tail())
+print("Default rate: {:.1%}".format(df_credit["Default"].mean()))
+
+X = df_credit.drop(columns="Default")
+y = df_credit["Default"]
+
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+scaler = StandardScaler()
+X_tr_sc = scaler.fit_transform(X_tr)
+X_te_sc = scaler.transform(X_te)
+
+gb_model = GradientBoostingClassifier(
+    n_estimators=200, max_depth=4, learning_rate=0.1, random_state=42)
+gb_model.fit(X_tr_sc, y_tr)
+
+y_prob_credit = gb_model.predict_proba(X_te_sc)[:, 1]
+print(f"\nAUC-ROC: {roc_auc_score(y_te, y_prob_credit):.3f}")
+print(classification_report(y_te, gb_model.predict(X_te_sc),
+                             target_names=["No Default","Default"]))
+
+# Assign credit scores (higher = lower default risk)
+all_prob = gb_model.predict_proba(scaler.transform(X))[:, 1]
+df_credit["Credit_Score"] = (1000 * (1 - all_prob)).round(0).astype(int)
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+
+axes[0].hist(df_credit["Credit_Score"], bins=10, color="steelblue", edgecolor="white")
+axes[0].set_title("Predicted Credit Score Distribution")
+axes[0].set_xlabel("Score")
+axes[0].set_ylabel("Count")
+
+RocCurveDisplay.from_estimator(gb_model, X_te_sc, y_te, ax=axes[1],
+                                name="Gradient Boosting")
+axes[1].set_title("ROC Curve — Default Prediction")
+
+plt.suptitle("Credit Scoring Model", fontsize=16)
+plt.tight_layout()
+plt.show()
+```

@@ -1,0 +1,30 @@
+---
+title: "ML for Finance"
+format: pptx 
+font: times new roman
+---
+
+## Section 4.2 — ML in Finance
+
+# slide 1 
+**Objectives**
+
+By the end of this section you will be able to:
+
+- Build a credit scoring model using Gradient Boosting.
+- Evaluate a financial risk model with AUC-ROC and a classification report.
+- Apply Isolation Forest for unsupervised fraud and anomaly detection.
+- Discuss ethical considerations in algorithmic financial decision-making.
+
+# slide 2 
+> **Cooking analogy:** A finance team is like a **head chef managing a large
+> restaurant kitchen**: they must decide which suppliers (borrowers) are reliable,
+> flag any ingredient (transaction) that smells off before it contaminates the
+> whole batch, and balance the menu (portfolio) so no single dish dominates. ML
+> automates these quality-control decisions at scale and with far greater
+> consistency than manual inspection alone.
+
+Finance teams use ML for credit scoring, fraud detection, portfolio management,
+and risk assessment.
+
+### Credit Scoring Model

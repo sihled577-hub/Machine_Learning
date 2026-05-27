@@ -1,0 +1,56 @@
+---
+title: "Fraud Detection"
+date: 2026-05-26
+format: docx
+font: times new roman
+---
+
+# Purpose
+
+To detect fraud from financial transactions
+
+# Dataset
+
+There are 2000 transactions with 3 features
+
+# Method
+
+
+We used the IsolationForest functions from scikit-learn package
+
+```{python}
+#| echo: true
+from sklearn.ensemble import IsolationForest
+import numpy as np 
+import pandas as pd
+
+np.random.seed(55)
+n_normal = 1900
+n_fraud  = 100
+
+df_fraud = pd.DataFrame({
+    "Amount"    : np.concatenate([np.random.lognormal(4, 1, n_normal),
+                                   np.random.uniform(5_000, 20_000, n_fraud)]),
+    "Hour"      : np.concatenate([np.random.randint(6, 22, n_normal),
+                                   np.random.randint(0, 6, n_fraud)]),
+    "Merchant_Risk": np.concatenate([np.random.uniform(0, 0.3, n_normal),
+                                       np.random.uniform(0.7, 1.0, n_fraud)]),
+    "True_Fraud": [0] * n_normal + [1] * n_fraud
+})
+
+print(df_fraud.info())
+print(df_fraud.describe().round(1))
+print("Top 10")
+print(df_fraud.head())
+print("Bottom 10")
+print(df_fraud.tail())
+
+X_fraud = df_fraud[["Amount","Hour","Merchant_Risk"]]
+iso     = IsolationForest(contamination=0.05, random_state=42)
+iso.fit(X_fraud)
+df_fraud["Predicted_Fraud"] = (iso.predict(X_fraud) == -1).astype(int)
+
+tp = ((df_fraud["True_Fraud"] == 1) & (df_fraud["Predicted_Fraud"] == 1)).sum()
+print(f"Fraud correctly flagged (Recall): {tp/n_fraud:.1%}")
+```
+

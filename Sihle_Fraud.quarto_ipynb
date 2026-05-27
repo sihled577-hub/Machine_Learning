@@ -1,0 +1,82 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Fraud Detection\"\n",
+        "date: 2026-05-26\n",
+        "format: docx\n",
+        "font: times new roman\n",
+        "---\n",
+        "\n",
+        "# Purpose\n",
+        "\n",
+        "To detect fraud from financial transactions\n",
+        "\n",
+        "# Dataset\n",
+        "\n",
+        "There are 2000 transactions with 3 features\n",
+        "\n",
+        "# Method\n",
+        "\n",
+        "\n",
+        "We used the IsolationForest functions from scikit-learn package"
+      ],
+      "id": "78d4828b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "#| echo: true\n",
+        "from sklearn.ensemble import IsolationForest\n",
+        "import numpy as np \n",
+        "import pandas as pd\n",
+        "\n",
+        "np.random.seed(55)\n",
+        "n_normal = 1900\n",
+        "n_fraud  = 100\n",
+        "\n",
+        "df_fraud = pd.DataFrame({\n",
+        "    \"Amount\"    : np.concatenate([np.random.lognormal(4, 1, n_normal),\n",
+        "                                   np.random.uniform(5_000, 20_000, n_fraud)]),\n",
+        "    \"Hour\"      : np.concatenate([np.random.randint(6, 22, n_normal),\n",
+        "                                   np.random.randint(0, 6, n_fraud)]),\n",
+        "    \"Merchant_Risk\": np.concatenate([np.random.uniform(0, 0.3, n_normal),\n",
+        "                                       np.random.uniform(0.7, 1.0, n_fraud)]),\n",
+        "    \"True_Fraud\": [0] * n_normal + [1] * n_fraud\n",
+        "})\n",
+        "\n",
+        "print(df_fraud.info())\n",
+        "print(df_fraud.describe().round(1))\n",
+        "print(\"Top 10\")\n",
+        "print(df_fraud.head())\n",
+        "print(\"Bottom 10\")\n",
+        "print(df_fraud.tail())\n",
+        "\n",
+        "X_fraud = df_fraud[[\"Amount\",\"Hour\",\"Merchant_Risk\"]]\n",
+        "iso     = IsolationForest(contamination=0.05, random_state=42)\n",
+        "iso.fit(X_fraud)\n",
+        "df_fraud[\"Predicted_Fraud\"] = (iso.predict(X_fraud) == -1).astype(int)\n",
+        "\n",
+        "tp = ((df_fraud[\"True_Fraud\"] == 1) & (df_fraud[\"Predicted_Fraud\"] == 1)).sum()\n",
+        "print(f\"Fraud correctly flagged (Recall): {tp/n_fraud:.1%}\")"
+      ],
+      "id": "6598491b",
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "C:\\Users\\teacher\\AppData\\Local\\Programs\\Python\\Python312\\share\\jupyter\\kernels\\python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
